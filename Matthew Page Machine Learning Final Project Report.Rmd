@@ -9,20 +9,20 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(cache = FALSE)
 ```
-## Executive Summary
-In this paper we explore various methods to predict which form 5 people used in doing barbell curls.  We build a model based on training data that have been split into a training and a validation set then finally use that model to do the prediction.  The final model chosen has an out of sample error rate of 0.8%  
+## Description
+In this paper we explore various methods to predict which form 5 people used in doing barbell curls.  We build a model based on training data that have been split into a training and a validation set then finally use that model to do the prediction.
 
 ## Setup
 ```{r Setup}
 # Prepare the environment
 
-library(lattice, quietly = TRUE, warn.conflicts = FALSE)
-library(ggplot2, quietly = TRUE, warn.conflicts = FALSE)
-library(caret, quietly = TRUE, warn.conflicts = FALSE)
-library(survival, quietly = TRUE, warn.conflicts = FALSE)
-library(splines, quietly = TRUE, warn.conflicts = FALSE)
-library(parallel, quietly = TRUE, warn.conflicts = FALSE)
-library(gbm, quietly = TRUE, warn.conflicts = FALSE)
+library(lattice, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE)
+library(ggplot2, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE)
+library(caret, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE)
+library(survival, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE)
+library(splines, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE)
+library(parallel, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE)
+library(gbm, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE)
 
 setwd("C:\\Data Science\\Coursera\\Machine Learning")
 set.seed(12182017)
