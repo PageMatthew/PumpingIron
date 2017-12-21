@@ -1,0 +1,95 @@
+---
+title: "Predicting the Quality of Iron Pumping Exercise"
+author: "Matthew Page"
+date: "December 19, 2017"
+output: html_document
+---
+
+```{r InitialSetup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(cache = FALSE)
+```
+## Executive Summary
+In this paper we explore various methods to predict which form 5 people used in doing barbell curls.  We build a model based on training data that have been split into a training and a validation set then finally use that model to do the prediction.  The final model chosen has an out of sample error rate of 0.8%  
+
+## Setup
+```{r Setup}
+# Prepare the environment
+
+library(lattice, quietly = TRUE, warn.conflicts = FALSE)
+library(ggplot2, quietly = TRUE, warn.conflicts = FALSE)
+library(caret, quietly = TRUE, warn.conflicts = FALSE)
+library(survival, quietly = TRUE, warn.conflicts = FALSE)
+library(splines, quietly = TRUE, warn.conflicts = FALSE)
+library(parallel, quietly = TRUE, warn.conflicts = FALSE)
+library(gbm, quietly = TRUE, warn.conflicts = FALSE)
+
+setwd("C:\\Data Science\\Coursera\\Machine Learning")
+set.seed(12182017)
+
+# Load the data files
+inTrain <- read.csv("pml-training.csv")
+testing <- read.csv("pml-testing.csv")
+```
+
+## Data Manipulation
+
+Here columns and rows that don't contribute to an accurate model have been removed.  This included columns that were almost entirely blank or NA as well as columns such as the subject name, the row number, the 'window' variables and the timestamps.
+```{r DataWrangling}
+# Filter out rows and columns that we don't seem to need...
+dim(inTrain)
+inTrain <- inTrain[inTrain$new_window == "no",]
+inTrain <- inTrain[,c(10,11,37:49,60:68,84:86,102,113:124,140,151:160)]
+dim(inTrain)
+```
+
+In order to cross validate the data, we break the training set into two separate sets.  The first is the training set which contains 75% of the original training data.  The second set is the validation set which consists of the remaining 25% of the original training data.
+
+The original 'testing' data will be used for the predictions once a model has been selected.
+
+```{r partition}
+
+# Partition Training set into training and validation for Cross Validation
+TrainPart = createDataPartition(inTrain$classe, p = 3/4)[[1]]
+validation <- inTrain[-TrainPart,]
+training <- inTrain[TrainPart,]
+dim(training)
+dim(validation)
+```
+In order to determine which model to use, I created 5 different models.  The first, which I ended up choosing, used a random forest.  I also tried Boosted Trees, Linear Descriminant, Partitioning and a combo of all of the above.  The accuracy of the combo of all models was the best of the five, but not significantly better than plain random forest, so I discarded it for simplicity sake.  The other three methods were significantly less accurate than random forest.
+
+## Model Building and Selection
+
+The random forest is built using the training data and then cross validated with the validation data.  The classe variable is the outcome and all of the remaining variables are the predictors.  I first trained the model without any cross validation other than the separate training and validation datasets.  I then retrained the model using the trainControl parameter set to trainControl(method = "cv", number = 4)).  Dividing this dataset into 4 folds didn't improve accuracy, but it did cut the runtime of the model training by about 90%.
+
+```{r ModelSelection, cache = TRUE}
+modrf <- train(classe~., method = "rf", data = training, trControl = trainControl(method = "cv", number = 4))
+predrf <- predict(modrf,validation)
+
+```
+
+## Analysis
+
+The accuracy of this model is very good.
+```{r Analysis}
+# Random Forest
+confusionMatrix(predrf,validation$classe)$overall['Accuracy']
+```
+
+### Out of Sample Error
+The out of sample error rate is 1 - the accuracy of the model.  So in this case it is `r 1-confusionMatrix(predrf,validation$classe)$overall['Accuracy']`
+
+### Results of prediction
+Using the trained model, we now predict the classe variable from the testing data set.  Here are the resulting values.
+
+```{r OutOfSample}
+predrfTest <- predict(modrf,testing)
+predrfTest
+```
+
+## Conclusion
+The random forest did pretty well at predicting the correct values with a high rate of accuracy.
+
+```{r Conclusion}
+
+```
